@@ -1,6 +1,6 @@
 let assert = require("assert");
-const {performance}=require("perf_hooks");
-let arrayLib = require("../func-arr-lib");
+const {performance} = require("perf_hooks");
+let arrayLib = require("../func-arr-lib-es6");
 
 describe("func-mini-lib", function () {
     describe("function first()", function () {
@@ -124,30 +124,30 @@ describe("func-mini-lib", function () {
             assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
         });
         t2 = performance.now();
-        let dt12=t2-t1;
+        let dt12 = t2 - t1;
 
-        t1=performance.now();
+        t1 = performance.now();
         it("should return (n-1)/2*n=499500 when the parameter is n=1e7", function () {
             let n = 1e7;
             assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
         });
-        t2=performance.now();
-        let dt21=t2-t1;
+        t2 = performance.now();
+        let dt21 = t2 - t1;
 
-        t1=performance.now();
+        t1 = performance.now();
         it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
             let n = 1e8;
             assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
         });
-        t2=performance.now();
-        let dt22=t2-t1;
+        t2 = performance.now();
+        let dt22 = t2 - t1;
 
         it("t1 should be more than t2 when the parameter is n=1e7", function () {
-            assert.equal(dt11>dt21, true);
+            assert.equal(dt11 > dt21, true);
         });
 
         it("t1 should be more than t2 when the parameter is n=1e8", function () {
-            assert.equal(dt12>dt22, true);
+            assert.equal(dt12 > dt22, true);
         });
     });
 });
