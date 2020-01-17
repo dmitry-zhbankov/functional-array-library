@@ -15,7 +15,6 @@ let arrLib = (function () {
     };
 
     this.chain = function (arr) {
-
         this.value = Array.from(arr);
         return this;
     };
@@ -36,6 +35,7 @@ let arrLib = (function () {
                 this.value = this.value.slice(number);
                 return this;
             }
+            return;
         }
         return Array.from(arr).slice(number);
     };
@@ -47,19 +47,21 @@ let arrLib = (function () {
                 this.value = this.value.slice(0, number);
                 return this;
             }
+            return;
         }
         return Array.from(arr).slice(0, number);
     };
 
     this.map = function (arr, func) {
         if (isUndefined(func)) {
-            if (isFunction(func)) {
+            if (isFunction(arr)) {
                 func = arr;
                 for (let i = 0; i < this.value.length; i++) {
                     this.value[i] = func(this.value[i]);
                 }
                 return this;
             }
+            return;
         }
         for (let i = 0; i < arr.length; i++) {
             arr[i] = func(arr[i]);
@@ -67,10 +69,31 @@ let arrLib = (function () {
         return arr;
     };
 
+    this.reduce = function (arr, func, initialValue) {
+        if (isUndefined(initialValue)) {
+            if (isFunction(arr)) {
+                initialValue = func;
+                func = arr;
+                for (let item of this.value) {
+                    initialValue = func(initialValue, item);
+                }
+                return initialValue;
+            }
+            for (let item of arr) {
+                initialValue = func(initialValue, item)
+            }
+            return initialValue;
+        }
+        for (let item of arr) {
+            initialValue = func(initialValue, item)
+        }
+        return initialValue;
+    };
+
     this.filter = function (arr, func) {
         let res = [];
         if (isUndefined(func)) {
-            if (isFunction(func)) {
+            if (isFunction(arr)) {
                 func = arr;
                 for (let item of this.value) {
                     if (func(item)) {
@@ -80,6 +103,7 @@ let arrLib = (function () {
                 this.value = res;
                 return this;
             }
+            return;
         }
         for (let item of arr) {
             if (func(item)) {
@@ -87,6 +111,22 @@ let arrLib = (function () {
             }
         }
         return res;
+    };
+
+    this.foreach = function (arr, func) {
+        if (isUndefined(func)) {
+            if (isFunction(arr)) {
+                func = arr;
+                for (let item of this.value) {
+                    func(item);
+                }
+                return this;
+            }
+            return;
+        }
+        for (let item of arr) {
+            func(item);
+        }
     };
 
     return this;
