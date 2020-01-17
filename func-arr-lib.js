@@ -14,6 +14,10 @@ let arrLib = (function () {
         return typeof obj === "function";
     };
 
+    let isArray = function (obj) {
+        return Array.isArray(obj);
+    };
+
     this.chain = function (arr) {
         this.value = Array.from(arr);
         return this;
@@ -37,7 +41,9 @@ let arrLib = (function () {
             }
             return;
         }
-        return Array.from(arr).slice(number);
+        if (isArray(arr)) {
+            return Array.from(arr).slice(number);
+        }
     };
 
     this.take = function (arr, number) {
@@ -49,7 +55,9 @@ let arrLib = (function () {
             }
             return;
         }
-        return Array.from(arr).slice(0, number);
+        if (isArray(arr)) {
+            return Array.from(arr).slice(0, number);
+        }
     };
 
     this.map = function (arr, func) {
@@ -63,10 +71,12 @@ let arrLib = (function () {
             }
             return;
         }
-        for (let i = 0; i < arr.length; i++) {
-            arr[i] = func(arr[i]);
+        if (isArray(arr)) {
+            for (let i = 0; i < arr.length; i++) {
+                arr[i] = func(arr[i]);
+            }
+            return arr;
         }
-        return arr;
     };
 
     this.reduce = function (arr, func, initialValue) {
@@ -79,15 +89,16 @@ let arrLib = (function () {
                 }
                 return initialValue;
             }
-            for (let item of arr) {
-                initialValue = func(initialValue, item)
+            return;
+        }
+        if (isArray(arr)) {
+            if (isFunction(func)) {
+                for (let item of arr) {
+                    initialValue = func(initialValue, item)
+                }
+                return initialValue;
             }
-            return initialValue;
         }
-        for (let item of arr) {
-            initialValue = func(initialValue, item)
-        }
-        return initialValue;
     };
 
     this.filter = function (arr, func) {
@@ -97,7 +108,7 @@ let arrLib = (function () {
                 func = arr;
                 for (let item of this.value) {
                     if (func(item)) {
-                        res = [...res, item];
+                        res.push(item);
                     }
                 }
                 this.value = res;
@@ -105,12 +116,14 @@ let arrLib = (function () {
             }
             return;
         }
-        for (let item of arr) {
-            if (func(item)) {
-                res = [...res, item];
+        if (isArray(arr)) {
+            for (let item of arr) {
+                if (func(item)) {
+                    res.push(item);
+                }
             }
+            return res;
         }
-        return res;
     };
 
     this.foreach = function (arr, func) {
@@ -124,10 +137,31 @@ let arrLib = (function () {
             }
             return;
         }
-        for (let item of arr) {
-            func(item);
+        if (isArray(arr)) {
+            for (let item of arr) {
+                func(item);
+            }
         }
     };
+
+    this.sumMemo = function () {
+        let memo = {};
+
+        let sum = function (n) {
+            let sum = 0;
+            for (let i = 0; i < n; i++) {
+                sum += i;
+            }
+            return sum;
+        };
+
+        return function (n1) {
+            if (n1 in memo) {
+                return memo[n1];
+            }
+            return memo[n1] = sum(n1);
+        };
+    }();
 
     return this;
 

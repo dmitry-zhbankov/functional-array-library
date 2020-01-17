@@ -1,4 +1,5 @@
 let assert = require("assert");
+const {performance}=require("perf_hooks");
 let arrayLib = require("../func-arr-lib");
 
 describe("func-mini-lib", function () {
@@ -105,6 +106,48 @@ describe("func-mini-lib", function () {
             let y = 0;
             assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).foreach(x => y += x).reduce((accum, item) => accum * item, 2), 50);
             assert.equal(y, 26);
+        });
+    });
+
+    describe("function sumMemo()", function () {
+        let t1 = performance.now();
+        it("should return (n-1)/2*n=499500 when the parameter is n=1e7", function () {
+            let n = 1e7;
+            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
+        });
+        let t2 = performance.now();
+        let dt11 = t2 - t1;
+
+        t1 = performance.now();
+        it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
+            let n = 1e8;
+            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
+        });
+        t2 = performance.now();
+        let dt12=t2-t1;
+
+        t1=performance.now();
+        it("should return (n-1)/2*n=499500 when the parameter is n=1e7", function () {
+            let n = 1e7;
+            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
+        });
+        t2=performance.now();
+        let dt21=t2-t1;
+
+        t1=performance.now();
+        it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
+            let n = 1e8;
+            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
+        });
+        t2=performance.now();
+        let dt22=t2-t1;
+
+        it("t1 should be more than t2 when the parameter is n=1e7", function () {
+            assert.equal(dt11>dt21, true);
+        });
+
+        it("t1 should be more than t2 when the parameter is n=1e8", function () {
+            assert.equal(dt12>dt22, true);
         });
     });
 });
