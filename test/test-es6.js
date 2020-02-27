@@ -1,6 +1,7 @@
 let assert = require("assert");
 const {performance} = require("perf_hooks");
 let arrayLib = require("../func-arr-lib-es6");
+let chainLib = require("../chain-lib");
 
 describe("func-mini-lib", function () {
     describe("function first()", function () {
@@ -75,72 +76,80 @@ describe("func-mini-lib", function () {
 
     describe("functions asChain() skip() take() map() filter() value()", function () {
         it("should return [1,5] when the parameters are [1, 3, 2, 1, 5, 3], skip 3, take 2", function () {
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(3).take(2).value, [1, 5]);
+            assert.deepEqual(chainLib.chain([1, 3, 2, 1, 5, 3]).skip(3).take(2).result, [1, 5]);
         });
 
         it("should return [2,1,5] when the parameters are [1, 3, 2, 1, 5, 3], skip 2, take 3", function () {
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).value, [2, 1, 5]);
+            assert.deepEqual(chainLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).result, [2, 1, 5]);
         });
 
         it("should return [4,1,25] when the parameters are [1, 3, 2, 1, 5, 3], skip 2, take 3, map x=>x*x", function () {
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).value, [4, 1, 25]);
+            assert.deepEqual(chainLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).result, [4, 1, 25]);
         });
 
         it("should return [1,25] when the parameters are [1, 3, 2, 1, 5, 3], skip 2, take 3, map x=>x*x, filter x=>x%2!==0", function () {
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).value, [1, 25]);
+            assert.deepEqual(chainLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).result, [1, 25]);
         });
 
         it("should return [1,25] and y=26 when the parameters are [1, 3, 2, 1, 5, 3], skip 2, take 3, map x=>x*x, filter x=>x%2!==0, foreach x=>y+=x", function () {
             let y = 0;
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).foreach(x => y += x).value, [1, 25]);
-            assert.equal(y, 26);
-        });
-
-        it("should return 50 and y=26 when the parameters are [1, 3, 2, 1, 5, 3], skip 2, take 3, map x=>x*x, filter x=>x%2!==0, foreach x=>y+=x, reduce ((accum, item) => accum + item)", function () {
-            let y = 0;
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).foreach(x => y += x).reduce((accum, item) => accum + item, 1), 27);
+            chainLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).foreach(x => y += x);
             assert.equal(y, 26);
         });
 
         it("should return 50 and y=26 when the parameters are [1, 3, 2, 1, 5, 3], skip 2, take 3, map x=>x*x, filter x=>x%2!==0, foreach x=>y+=x, reduce ((accum, item) => accum * item, 2)", function () {
-            let y = 0;
-            assert.deepEqual(arrayLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).foreach(x => y += x).reduce((accum, item) => accum * item, 2), 50);
-            assert.equal(y, 26);
+            assert.deepEqual(chainLib.chain([1, 3, 2, 1, 5, 3]).skip(2).take(3).map(x => x * x).filter(x => x % 2 !== 0).reduce((accum, item) => accum + item, 2).result, 28);
         });
     });
 
-    describe("function sumMemo()", function () {
-        let t1 = performance.now();
+    describe("function memo()", function () {
+        let sumN = function (n) {
+            let sum = 0;
+            for (let i = 0; i < n; i++) {
+                sum += i;
+            }
+            return sum;
+        };
+
+        let sumMemo = arrayLib.memo(sumN);
+
+        let t1, t2;
+        let dt11, dt12, dt21, dt22;
+
+        let n = 1e7;
+        t1 = performance.now();
+        let res = sumMemo(n);
+        t2 = performance.now();
+        dt11 = t2 - t1;
         it("should return (n-1)/2*n=499500 when the parameter is n=1e7", function () {
-            let n = 1e7;
-            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
+
+            assert.equal(res, (n - 1) / 2 * n);
         });
-        let t2 = performance.now();
-        let dt11 = t2 - t1;
 
         t1 = performance.now();
-        it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
-            let n = 1e8;
-            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
-        });
+        res = sumMemo(n);
         t2 = performance.now();
-        let dt12 = t2 - t1;
-
-        t1 = performance.now();
+        dt21 = t2 - t1;
         it("should return (n-1)/2*n=499500 when the parameter is n=1e7", function () {
-            let n = 1e7;
-            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
+            assert.equal(res, (n - 1) / 2 * n);
         });
+
+        n = 1e8;
+        t1 = performance.now();
+        res = sumMemo(n);
         t2 = performance.now();
-        let dt21 = t2 - t1;
+        dt12 = t2 - t1;
+        it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
+            assert.equal(res, (n - 1) / 2 * n);
+        });
 
         t1 = performance.now();
-        it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
-            let n = 1e8;
-            assert.equal(arrayLib.sumMemo(n), (n - 1) / 2 * n);
-        });
+        res = sumMemo(n);
         t2 = performance.now();
-        let dt22 = t2 - t1;
+        dt22 = t2 - t1;
+        it("should return (n-1)/2*n=499999500000 when the parameter is n=1e8", function () {
+            assert.equal(sumMemo(n), (n - 1) / 2 * n);
+        });
 
         it("t1 should be more than t2 when the parameter is n=1e7", function () {
             assert.equal(dt11 > dt21, true);
